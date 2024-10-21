@@ -75,21 +75,25 @@
     <script>
         // AWS Configuration
         AWS.config.update({
-            region: 'eu-north-1', // Replace with your preferred region
-            accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
-            secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' // Replace with your secret access key
+             region: 'eu-north-1', // Replace with your preferred region
+            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
+            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK
         });
 
         const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username'); // Keep username for display
+        const username = params.get('username');
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
         // Display welcome message
-        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+        if (username) {
+            document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+        } else {
+            document.getElementById('welcome-message').textContent = 'Welcome Guest';
+        }
 
         // Function to save score in DynamoDB
         function saveScore(username, gameName, score) {
@@ -136,13 +140,14 @@
             });
         }
 
-        // Save the current score if valid
-        if (gameName && !isNaN(score)) {
-            saveScore(username, gameName, score); // Save to DynamoDB
+        // Validate parameters and save the score if valid
+        if (gameName && !isNaN(score) && score >= 0) {
+            saveScore(username || 'Guest', gameName, score); // Save to DynamoDB
+            displayScores();
         } else {
-            console.warn('Game name or score is invalid. Not saving to scoreboard.');
+            console.warn('Invalid parameters. Please ensure that all parameters (username, gameName, score) are provided and score is a valid number.');
+            document.getElementById('welcome-message').textContent = 'Invalid Score Submission';
         }
-        displayScores();
     </script>
 </body>
 </html>
