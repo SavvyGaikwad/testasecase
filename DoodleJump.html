@@ -183,16 +183,14 @@
       });
 
       // check if doodle has fallen off the screen
-      // check if doodle has fallen off the screen
       if (doodle.y > canvas.height) {
         // Store the score and game name in localStorage
         localStorage.setItem('finalScore', score); // Store the score in localStorage
         localStorage.setItem('gameName', 'Doodle Jump'); // Store the game name in localStorage
+
         // Redirect to scoreboard.html with query parameters
         window.location.href = 'scoreboard.html?score=' + score + '&gameName=Doodle Jump'; // Redirect to scoreboard.html
         return; // stop the game loop
-}
-
       }
 
       // draw doodle
