@@ -76,6 +76,8 @@
         </button>
     </div>
 
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="../config/awsConfig.js"></script>
     <script>
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
@@ -91,9 +93,6 @@
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
             scores.push({ gameName, score });
             localStorage.setItem('scores', JSON.stringify(scores));
-
-            // Call the function to save score to DynamoDB (this would be an API call in a real scenario)
-            saveScoreToDynamoDB(username, gameName, score);
         }
 
         // Function to display scores in the table
@@ -109,9 +108,33 @@
             });
         }
 
+        // Function to save score to DynamoDB
+        function saveScoreToDynamoDB(username, gameName, score) {
+            const dynamoDB = require('../config/awsConfig'); // Adjust the path if needed
+
+            const params = {
+                TableName: 'score', // Replace with your DynamoDB table name
+                Item: {
+                    UserName: username,
+                    GameName: gameName,
+                    Score: score,
+                    Timestamp: new Date().toISOString() // Optional timestamp
+                }
+            };
+
+            dynamoDB.put(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Added item:", JSON.stringify(data, null, 2));
+                }
+            });
+        }
+
         // Save the current score if valid and display all scores
         if (gameName && !isNaN(score)) {
             saveScore(gameName, score);
+            saveScoreToDynamoDB(username, gameName, score); // Save to DynamoDB
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
