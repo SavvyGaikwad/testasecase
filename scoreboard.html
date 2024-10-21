@@ -14,6 +14,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
         }
+
         .score-board {
             padding: 20px;
             border-radius: 10px;
@@ -21,19 +22,23 @@
             color: white;
             box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         th, td {
             padding: 10px;
             border: 1px solid white;
             text-align: center;
         }
+
         th {
             background-color: #7d2ae8;
         }
+
         .button {
             position: relative;
             padding: 10px 22px;
@@ -45,6 +50,7 @@
             transition: all 0.2s ease;
             margin-top: 20px;
         }
+
         .button:active {
             transform: scale(0.96);
         }
@@ -65,22 +71,12 @@
                 <!-- Scores will be appended here -->
             </tbody>
         </table>
-        <button class="button" onclick="goToGames()">
+        <button class="button" onclick="window.location.href='landing.html'">
             Go to Games
         </button>
     </div>
 
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
     <script>
-        // AWS Configuration
-        AWS.config.update({
-            region: 'eu-north-1', // Replace with your preferred region
-            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
-            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
-        });
-
-        const s3 = new AWS.S3();
-
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
@@ -88,12 +84,12 @@
         const score = parseInt(params.get('score'));
 
         // Display welcome message
-        document.getElementById('welcome-message').textContent = Welcome ${username};
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
         // Function to save score in local storage
         function saveScore(gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ username, gameName, score });
+            scores.push({ gameName, score });
             localStorage.setItem('scores', JSON.stringify(scores));
         }
 
@@ -105,52 +101,14 @@
 
             scores.forEach((scoreEntry, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = <td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>;
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
                 scoreTableBody.appendChild(row);
             });
         }
 
-        // Function to save scores to CSV and upload to S3
-        function saveScoresToCSV() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            if (scores.length === 0) {
-                console.warn('No scores to save.');
-                return;
-            }
-
-            // Create CSV content
-            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry) => 
-                    ${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}
-                ).join('\n');
-
-            // Prepare S3 upload parameters
-            const s3Params = {
-                Bucket: 'testgamearc', // Replace with your S3 bucket name
-                Key: 'scores.csv', // Name of the file in S3
-                Body: csvContent,
-                ContentType: 'text/csv'
-            };
-
-            // Upload to S3
-            s3.putObject(s3Params, (err, data) => {
-                if (err) {
-                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
-                } else {
-                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
-                }
-            });
-        }
-
-        // Function to handle button click and navigate to the games page
-        function goToGames() {
-            window.location.href = 'landing.html?username=' + encodeURIComponent(username);
-        }
-
-        // Save the current score if valid
+        // Save the current score if valid and display all scores
         if (gameName && !isNaN(score)) {
-            saveScore(gameName, score); // Save to local storage
-            saveScoresToCSV(); // Save scores to CSV and upload to S3
+            saveScore(gameName, score);
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
