@@ -109,7 +109,7 @@
 
         // Function to save score to DynamoDB
         function saveScoreToDynamoDB(username, gameName, score) {
-            // Configure AWS SDK (make sure this part is run on the server side or secured environment)
+            // Configure AWS SDK
             AWS.config.update({
                 region: 'us-east-1', // Replace with your preferred region
                 accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
@@ -119,7 +119,7 @@
             const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
             const params = {
-                TableName: 'Score', // Correctly set table name to 'Score'
+                TableName: 'Score', // Ensure table name is 'Score'
                 Item: {
                     UserName: username,
                     GameName: gameName,
