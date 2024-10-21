@@ -81,9 +81,11 @@
 
         const s3 = new AWS.S3();
 
+        // Retrieve username from local storage
+        const username = localStorage.getItem('username');
+
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
