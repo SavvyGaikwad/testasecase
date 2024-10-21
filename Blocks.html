@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html>
 <head>
   <title>Blocks</title>
@@ -19,33 +19,10 @@
     canvas {
       border: 1px solid rgb(0, 0, 0);
     }
-
-    .rating {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .star {
-      font-size: 30px;
-      cursor: pointer;
-      color: gold;
-    }
-
-    .star.selected {
-      color: orange;
-    }
   </style>
 </head>
 <body>
 <canvas width="320" height="640" id="game"></canvas>
-<div class="rating" id="rating" style="display: none;">
-  <span class="star" data-value="1">&#9733;</span>
-  <span class="star" data-value="2">&#9733;</span>
-  <span class="star" data-value="3">&#9733;</span>
-  <span class="star" data-value="4">&#9733;</span>
-  <span class="star" data-value="5">&#9733;</span>
-</div>
 <script>
 // get a random integer between the range of [min,max]
 function getRandomInt(min, max) {
@@ -176,37 +153,11 @@ function showGameOver() {
   context.font = '24px monospace';
   context.fillText('Score: ' + score, canvas.width / 2, canvas.height / 2 + 30);
   localStorage.setItem('finalScore', score); // Store the score in localStorage
-  localStorage.setItem('gameName', 'Blocks'); // Store the game name in localStorage
+        localStorage.setItem('gameName', 'Blocks'); // Store the game name in localStorage
 
-  // Show rating options
-  document.getElementById('rating').style.display = 'flex';
+        // Redirect to scoreboard.html with query parameters
+        window.location.href = 'scoreboard.html?score=' + score + '&gameName=Blocks';
 }
-
-// Handle star rating
-document.querySelectorAll('.star').forEach(star => {
-  star.addEventListener('click', function() {
-    const rating = this.getAttribute('data-value');
-    alert('Thank you for rating: ' + rating + ' stars!');
-    localStorage.setItem('userRating', rating); // Store user rating in localStorage
-
-    // Optionally, you can redirect or perform other actions here
-  });
-
-  // Optional: Highlight stars on hover
-  star.addEventListener('mouseover', function() {
-    const value = this.getAttribute('data-value');
-    document.querySelectorAll('.star').forEach(s => {
-      s.classList.remove('selected');
-      if (s.getAttribute('data-value') <= value) {
-        s.classList.add('selected');
-      }
-    });
-  });
-
-  star.addEventListener('mouseout', function() {
-    document.querySelectorAll('.star').forEach(s => s.classList.remove('selected'));
-  });
-});
 
 const canvas = document.getElementById('game');
 const context = canvas.getContext('2d');
@@ -256,82 +207,101 @@ const tetrominos = {
     [0,1,0],
     [1,1,1],
     [0,0,0],
-  ],
+  ]
 };
 
+const colors = {
+  'I': 'cyan',
+  'O': 'yellow',
+  'T': 'purple',
+  'S': 'green',
+  'Z': 'red',
+  'J': 'blue',
+  'L': 'orange'
+};
+
+let count = 0;
 let tetromino = getNextTetromino();
-let rAF;
+let rAF = null;  // keep track of the animation frame so we can cancel it
 let gameOver = false;
 
-// drawing function
-function draw() {
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // draw playfield
-  for (let row = 0; row < playfield.length; row++) {
-    for (let col = 0; col < playfield[row].length; col++) {
-      if (playfield[row][col]) {
-        context.fillStyle = 'white';
-        context.fillRect(col * grid, row * grid, grid, grid);
-      }
-    }
-  }
-
-  // draw current tetromino
-  for (let row = 0; row < tetromino.matrix.length; row++) {
-    for (let col = 0; col < tetromino.matrix[row].length; col++) {
-      if (tetromino.matrix[row][col]) {
-        context.fillStyle = 'blue';
-        context.fillRect((tetromino.col + col) * grid, (tetromino.row + row) * grid, grid, grid);
-      }
-    }
-  }
-}
-
 // game loop
-function update() {
-  if (gameOver) {
-    return;
-  }
-  
-  tetromino.row++;
+function loop() {
+  rAF = requestAnimationFrame(loop);
+  context.clearRect(0,0,canvas.width,canvas.height);
 
-  // Check if the tetromino has landed
-  if (!isValidMove(tetromino.matrix, tetromino.row, tetromino.col)) {
-    tetromino.row--;
-    placeTetromino();
+  // draw the playfield
+  for (let row = 0; row < 20; row++) {
+    for (let col = 0; col < 10; col++) {
+      if (playfield[row][col]) {
+        const name = playfield[row][col];
+        context.fillStyle = colors[name];
+        context.fillRect(col * grid, row * grid, grid-1, grid-1);
+      }
+    }
   }
 
-  draw();
-  rAF = requestAnimationFrame(update);
+  // draw the active tetromino
+  if (tetromino) {
+    if (++count > 35) {
+      tetromino.row++;
+      count = 0;
+
+      if (!isValidMove(tetromino.matrix, tetromino.row, tetromino.col)) {
+        tetromino.row--;
+        placeTetromino();
+      }
+    }
+
+    context.fillStyle = colors[tetromino.name];
+    for (let row = 0; row < tetromino.matrix.length; row++) {
+      for (let col = 0; col < tetromino.matrix[row].length; col++) {
+        if (tetromino.matrix[row][col]) {
+          context.fillRect((tetromino.col + col) * grid, (tetromino.row + row) * grid, grid-1, grid-1);
+        }
+      }
+    }
+  }
+
+  // Draw the score
+  context.fillStyle = 'white';
+  context.font = '20px monospace';
+  context.textAlign = 'left';
+  context.textBaseline = 'top';
+  context.fillText('Score: ' + score, 10, 10);
 }
 
-// keyboard input handler
+// keyboard controls
 document.addEventListener('keydown', function(e) {
   if (gameOver) return;
 
-  if (e.key === 'ArrowLeft') {
+  if (e.which === 37 || e.which === 65) {
+    // left arrow or A
     if (isValidMove(tetromino.matrix, tetromino.row, tetromino.col - 1)) {
       tetromino.col--;
     }
-  } else if (e.key === 'ArrowRight') {
+  } else if (e.which === 39 || e.which === 68) {
+    // right arrow or D
     if (isValidMove(tetromino.matrix, tetromino.row, tetromino.col + 1)) {
       tetromino.col++;
     }
-  } else if (e.key === 'ArrowDown') {
-    if (isValidMove(tetromino.matrix, tetromino.row + 1, tetromino.col)) {
-      tetromino.row++;
-    }
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.which === 38 || e.which === 87) {
+    // up arrow or W
     const rotated = rotate(tetromino.matrix);
     if (isValidMove(rotated, tetromino.row, tetromino.col)) {
       tetromino.matrix = rotated;
     }
+  } else if (e.which === 40 || e.which === 83) {
+    // down arrow or S
+    if (isValidMove(tetromino.matrix, tetromino.row + 1, tetromino.col)) {
+      tetromino.row++;
+    }
   }
 });
 
+// start the game
 generateSequence();
-update();
+loop();
 </script>
 </body>
 </html>
