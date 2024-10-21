@@ -82,11 +82,16 @@
 
         const s3 = new AWS.S3();
 
-        // Retrieve URL parameters
+        // Retrieve URL parameters with decoding
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
-        const gameName = params.get('gameName');
-        const score = parseInt(params.get('score'));
+        const username = decodeURIComponent(params.get('username'));
+        const gameName = decodeURIComponent(params.get('gameName'));
+        const score = parseInt(decodeURIComponent(params.get('score')));
+
+        // Debugging: log the values (optional)
+        console.log("Username:", username);
+        console.log("Game Name:", gameName);
+        console.log("Score:", score);
 
         // Display welcome message
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
