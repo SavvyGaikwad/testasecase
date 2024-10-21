@@ -63,9 +63,9 @@
             <thead>
                 <tr>
                     <th>Sr. No.</th>
-                    <th>Username</th>
                     <th>Game Name</th>
                     <th>Score</th>
+                    <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody id="score-table-body">
@@ -75,22 +75,25 @@
         <button class="button" onclick="window.location.href='landing.html'">
             Go to Games
         </button>
+        <button class="button" onclick="exportToCSV()">
+            Export to CSV
+        </button>
     </div>
 
     <script>
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
         // Display welcome message
-        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+        document.getElementById('welcome-message').textContent = `Welcome to the Scoreboard!`;
 
-        // Function to save score in local storage, including username
-        function saveScore(username, gameName, score) {
+        // Function to save score in local storage without username
+        function saveScore(gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ username, gameName, score });
+            const timestamp = new Date().toLocaleString(); // Get current timestamp
+            scores.push({ gameName, score, timestamp });
             localStorage.setItem('scores', JSON.stringify(scores));
         }
 
@@ -102,16 +105,36 @@
 
             scores.forEach((scoreEntry, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td><td>${scoreEntry.timestamp}</td>`;
                 scoreTableBody.appendChild(row);
             });
         }
 
+        // Function to export scores to CSV
+        function exportToCSV() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Game Name,Score,Timestamp\n"; // Header row
+
+            scores.forEach(scoreEntry => {
+                const row = `${scoreEntry.gameName},${scoreEntry.score},${scoreEntry.timestamp}`;
+                csvContent += row + "\n"; // Add each score entry to the CSV
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "new_file_db.csv"); // Set the filename
+            document.body.appendChild(link); // Required for Firefox
+            link.click(); // Trigger the download
+            document.body.removeChild(link); // Clean up
+        }
+
         // Save the current score if valid and display all scores
-        if (gameName && !isNaN(score) && username) {
-            saveScore(username, gameName, score);
+        if (gameName && !isNaN(score)) {
+            saveScore(gameName, score);
         } else {
-            console.warn('Game name, score, or username is invalid. Not saving to scoreboard.');
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
         displayScores();
     </script>
