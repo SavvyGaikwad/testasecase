@@ -118,10 +118,10 @@
                 return;
             }
 
-            // Create CSV content without username
-            const csvContent = 'GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry) => 
-                    `${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+            // Create CSV content with Sr. No.
+            const csvContent = 'Sr. No.,GameName,Score,Timestamp\n' + 
+                scores.map((scoreEntry, index) => 
+                    `${index + 1},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
                 ).join('\n');
 
             // Prepare S3 upload parameters
