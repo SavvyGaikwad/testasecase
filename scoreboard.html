@@ -65,7 +65,7 @@
                 <!-- Scores will be appended here -->
             </tbody>
         </table>
-        <button class="button" onclick="window.location.href='landing.html?username=' + encodeURIComponent(username)">
+        <button class="button" onclick="goToGames()">
             Go to Games
         </button>
     </div>
@@ -140,6 +140,11 @@
                     console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
                 }
             });
+        }
+
+        // Function to handle button click and navigate to the games page
+        function goToGames() {
+            window.location.href = 'landing.html?username=' + encodeURIComponent(username);
         }
 
         // Save the current score if valid
