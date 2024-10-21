@@ -2,9 +2,9 @@
 <html>
 
 <head>
-    <meta charSet="utf-8" />
+    <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>Country quiz</title>
+    <title>Country Quiz</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' href='./style.css'>
 </head>
@@ -14,6 +14,7 @@
         <section class="infobar">
             <div class="score">Score: <span id="score">0</span></div>
             <div class="time" id="time"></div>
+            <div class="username" id="usernameDisplay"></div> <!-- Placeholder for username -->
         </section>
         <div class="container">
             <section class="section">
@@ -51,10 +52,21 @@
 
     <script src='countries.js'></script>
     <script src='main.js'></script>
-     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
     <script src="../config/awsConfig.js"></script>
-    <script src="main.js"></script>
+    <script>
+        // Function to extract the username from the URL
+        function getUsernameFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('username') || 'Guest'; // Default to 'Guest' if no username is found
+        }
 
+        // Display the username on the page
+        const username = getUsernameFromURL();
+        document.getElementById('usernameDisplay').textContent = `Welcome, ${username}!`;
+
+        // Additional game logic can be implemented here...
+    </script>
 </body>
 
 </html>
