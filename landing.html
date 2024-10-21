@@ -1,265 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaming Application</title>
+    <title>Score Board</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             background-color: #f8d3e9;
+            font-family: Arial, sans-serif;
             text-align: center;
-            padding: 0;
-            margin: 0;
         }
 
-        header {
-            background-color: #f8d3e9;
+        .score-board {
             padding: 20px;
+            border-radius: 10px;
+            background-color: #858ed2;
             color: white;
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid white;
             text-align: center;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 36px;
+        th {
+            background-color: #7d2ae8;
         }
 
-        footer {
-            background-color: #333;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        footer p {
-            margin: 5px;
-            font-size: 16px;
-        }
-
-        footer a {
-            color: #ddd;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        .main-title {
-            font-size: 48px;
-            margin: 20px 0;
-            color: #333;
-        }
-
-        .game-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 60px;
-            justify-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, #e0e7ff, #f0f4f8);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .card {
-            --bg: #f7f7f8;
-            --hover-bg: #FFE5F4;
-            --hover-text: #ff00959f;
-            max-width: 250px;
-            text-align: center;
-            background: var(--bg);
-            padding: 1.5em;
-            border-radius: 15px;
+        .button {
             position: relative;
-            overflow: hidden;
-            transition: .3s cubic-bezier(.6, .4, 0, 1), transform .15s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 1em;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            padding: 10px 22px;
+            border-radius: 6px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            background-color: #7d2ae8;
+            transition: all 0.2s ease;
+            margin-top: 20px;
         }
 
-        .card__body {
-            color: #464853;
-            line-height: 1.5em;
-            font-size: 1em;
-        }
-
-        .card>strong {
-            display: block;
-            font-size: 1.4rem;
-            letter-spacing: -.035em;
-        }
-
-        .card span {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--hover-text);
-            border-radius: 5px;
-            font-weight: bold;
-            top: 100%;
-            transition: all .3s cubic-bezier(.6, .4, 0, 1);
-        }
-
-        .card:hover span {
-            top: 0;
-            font-size: 1.2em;
-        }
-
-        .card:hover {
-            background: var(--hover-bg);
-        }
-
-        .card:hover>div,
-        .card:hover>strong {
-            opacity: 0;
-        }
-
-        .game-panel {
-            text-decoration: none;
-        }
-
-        .game-panel img {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            height: auto;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .card:hover img {
-            opacity: 1;
-        }
-
-        /* Score Section */
-        .score-container {
-            margin: 20px;
-            font-size: 24px;
-            color: #333;
+        .button:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
-
 <body>
-
-    <!-- Header Section -->
-    <header>
-        <h1 class="main-title">Gaming Arcade</h1>
-    </header>
-
-    <!-- Welcome Message Section -->
-    <header id="main-header">
-        <!-- <h1 id="welcome-message">Welcome to the Gaming Arcade!</h1>-->
-        <p>Select a game to start playing:</p>
-    </header>
-
-    <!-- Score Display Section -->
-    <div class="score-container" id="score-container"></div>
-
-    <!-- Main Content Section -->
-    <div class="game-container" id="game-container">
-        <a class="card game-panel" href="DoodleJump.html?game=Doodle%20Jump&score=0">
-            <img src="DoodleJump.png" alt="Doodle Jump Preview">
-            <strong>Doodle Jump</strong>
-            <div class="card__body">Avoid falling by jumping through the platforms!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="Snake.html?game=Snake&score=0">
-            <img src="Snake.png" alt="Snake Preview">
-            <strong>Snake</strong>
-            <div class="card__body">Eat the food grow your snake but don't eat your own tail!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="Pong.html?game=Pong&score=0">
-            <img src="Pong.png" alt="Pong Preview">
-            <strong>Pong</strong>
-            <div class="card__body">Challenge your friend in this classic multiplayer game!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="Frogger.html?game=Frogger&score=0">
-            <img src="Frogger.png" alt="Frogger Preview">
-            <strong>Frogger</strong>
-            <div class="card__body">Help the frog cross the road safely!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="Blocks.html?game=Blocks&score=0">
-            <img src="Blocks.png" alt="Blocks Preview">
-            <strong>Blocks</strong>
-            <div class="card__body">Arrange the blocks to manage space on the board!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="Match/index.html?game=Match&score=0">
-            <img src="Match.png" alt="Match Preview">
-            <strong>Match</strong>
-            <div class="card__body">Find matching pairs in this fun game!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="ImagePuzzle/index.html?game=Image%20Puzzle&score=0">
-            <img src="ImagePuzzle.png" alt="Image Puzzle Preview">
-            <strong>Image Puzzle</strong>
-            <div class="card__body">Rearrange the pieces to complete the image!</div>
-            <span>Play Now</span>
-        </a>
-
-        <a class="card game-panel" href="FlagQuiz/index.html?game=Flag%20Quiz&score=0">
-            <img src="FlagQuiz.png" alt="Flag Quiz Preview">
-            <strong>Flag Quiz</strong>
-            <div class="card__body">Test your knowledge of world flags!</div>
-            <span>Play Now</span>
-        </a>
+    <div class="score-board">
+        <h1 id="welcome-message"></h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Game Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="score-table-body">
+                <!-- Scores will be appended here -->
+            </tbody>
+        </table>
+        <button class="button" onclick="window.location.href='landing.html'">
+            Go to Games
+        </button>
     </div>
 
-    <!-- Footer Section -->
-    <footer>
-        <p>Contact us at: <a href="mailto:info@gamingarcade.com">info@gamingarcade.com</a></p>
-        <p>&copy; 2024 Gaming Arcade.</p>
-    </footer>
-
     <script>
-        // Function to get URL parameters
-        function getQueryParameter(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
+        // Retrieve URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username');
+        const gameName = params.get('gameName');
+        const score = parseInt(params.get('score'));
+
+        // Display welcome message
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+
+        // Function to save score in local storage
+        function saveScore(gameName, score) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ gameName, score });
+            localStorage.setItem('scores', JSON.stringify(scores));
         }
 
-        // Get the username from the URL and update the welcome message
-        const username = getQueryParameter('username');
-        if (username) {
-            const welcomeMessage = document.getElementById('welcome-message');
-            welcomeMessage.innerText = `Hello, ${username}! Welcome to the Gaming Arcade!`;
+        // Function to display scores in the table
+        function displayScores() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            const scoreTableBody = document.getElementById('score-table-body');
+            scoreTableBody.innerHTML = ''; // Clear current scores
+
+            scores.forEach((scoreEntry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                scoreTableBody.appendChild(row);
+            });
         }
 
-        // Get the score and game name from the URL and display the score message
-        const game = getQueryParameter('game');
-        const score = getQueryParameter('score');
-
-        if (game && score) {
-            const scoreContainer = document.getElementById('score-container');
-            scoreContainer.innerText = `You got a score of ${score} in ${game}!`;
+        // Save the current score if valid and display all scores
+        if (gameName && !isNaN(score)) {
+            saveScore(gameName, score);
+        } else {
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
+        displayScores();
     </script>
 </body>
-
 </html>
