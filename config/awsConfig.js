@@ -2,6 +2,8 @@
 
 const AWS = require('aws-sdk');
 
+
+// Configure AWS
 // Configure the AWS SDK with your credentials
 AWS.config.update({
     accessKeyId: 'AKIAZQ3DSF3KWMBOIRG3',       // Replace with your actual AWS Access Key ID
@@ -9,4 +11,10 @@ AWS.config.update({
     region: 'eu-north-1'                      // Your AWS region
 });
 
-module.exports = AWS; // Export the AWS object for use in other files
+const dynamoDB = new AWS.DynamoDB.DocumentClient();
+
+module.exports = dynamoDB;
+
+
+
+
