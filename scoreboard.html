@@ -65,7 +65,6 @@
                     <th>Sr. No.</th>
                     <th>Game Name</th>
                     <th>Score</th>
-                    <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody id="score-table-body">
@@ -75,8 +74,8 @@
         <button class="button" onclick="window.location.href='landing.html'">
             Go to Games
         </button>
-        <button class="button" onclick="downloadCSV()">
-            Download Scores as CSV
+        <button class="button" onclick="exportScoresToCSV()">
+            Export to CSV
         </button>
     </div>
 
@@ -87,13 +86,12 @@
         const score = parseInt(params.get('score'));
 
         // Display welcome message
-        document.getElementById('welcome-message').textContent = `Welcome to the Scoreboard!`;
+        document.getElementById('welcome-message').textContent = `Welcome!`;
 
-        // Function to save score in local storage without username
+        // Function to save score in local storage, excluding username
         function saveScore(gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            const timestamp = new Date().toLocaleString(); // Get current timestamp
-            scores.push({ gameName, score, timestamp });
+            scores.push({ gameName, score });  // Removed username
             localStorage.setItem('scores', JSON.stringify(scores));
         }
 
@@ -105,35 +103,32 @@
 
             scores.forEach((scoreEntry, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td><td>${scoreEntry.timestamp}</td>`;
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
                 scoreTableBody.appendChild(row);
             });
         }
 
-        // Function to download scores as a CSV file
-        function downloadCSV() {
+        // Function to export scores to a CSV file
+        function exportScoresToCSV() {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Game Name,Score,Timestamp\n"; // CSV header
+            csvContent += "Game Name,Score\n"; // CSV header
 
             scores.forEach(scoreEntry => {
-                const row = `${scoreEntry.gameName},${scoreEntry.score},${scoreEntry.timestamp}`;
-                csvContent += row + "\n";
+                csvContent += `${scoreEntry.gameName},${scoreEntry.score}\n`;
             });
 
-            // Create a link and trigger the download
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
             link.setAttribute("download", "db.csv");
-            document.body.appendChild(link); // Required for FF
-
-            link.click(); // This will download the data file named "db.csv"
-            document.body.removeChild(link); // Clean up the link element
+            document.body.appendChild(link); // Required for Firefox
+            link.click(); // This will download the file
+            document.body.removeChild(link); // Clean up
         }
 
         // Save the current score if valid and display all scores
-        if (gameName && !isNaN(score)) {
+        if (gameName && !isNaN(score)) {  // Removed username check
             saveScore(gameName, score);
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
