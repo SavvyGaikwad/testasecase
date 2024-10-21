@@ -87,70 +87,69 @@
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
-        // Check if the parameters are valid
-        if (!username || !gameName || isNaN(score)) {
-            console.warn('Username, game name, or score is invalid. Not saving to scoreboard.');
-        } else {
-            // Display welcome message
-            document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+        // Display welcome message
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
-            // Function to save score in local storage
-            function saveScore(gameName, score) {
-                const scores = JSON.parse(localStorage.getItem('scores')) || [];
-                scores.push({ username, gameName, score });
-                localStorage.setItem('scores', JSON.stringify(scores));
+        // Function to save score in local storage
+        function saveScore(gameName, score) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ username, gameName, score });
+            localStorage.setItem('scores', JSON.stringify(scores));
+        }
+
+        // Function to display scores in the table
+        function displayScores() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            const scoreTableBody = document.getElementById('score-table-body');
+            scoreTableBody.innerHTML = ''; // Clear current scores
+
+            scores.forEach((scoreEntry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                scoreTableBody.appendChild(row);
+            });
+        }
+
+        // Function to save scores to CSV and upload to S3
+        function saveScoresToCSV() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            if (scores.length === 0) {
+                console.warn('No scores to save.');
+                return;
             }
 
-            // Function to display scores in the table
-            function displayScores() {
-                const scores = JSON.parse(localStorage.getItem('scores')) || [];
-                const scoreTableBody = document.getElementById('score-table-body');
-                scoreTableBody.innerHTML = ''; // Clear current scores
+            // Create CSV content
+            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
+                scores.map((scoreEntry) => 
+                    `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+                ).join('\n');
 
-                scores.forEach((scoreEntry, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-                    scoreTableBody.appendChild(row);
-                });
-            }
+            // Prepare S3 upload parameters
+            const s3Params = {
+                Bucket: 'testgamearc', // Replace with your S3 bucket name
+                Key: 'scores.csv', // Name of the file in S3
+                Body: csvContent,
+                ContentType: 'text/csv'
+            };
 
-            // Function to save scores to CSV and upload to S3
-            function saveScoresToCSV() {
-                const scores = JSON.parse(localStorage.getItem('scores')) || [];
-                if (scores.length === 0) {
-                    console.warn('No scores to save.');
-                    return;
+            // Upload to S3
+            s3.putObject(s3Params, (err, data) => {
+                if (err) {
+                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
                 }
+            });
+        }
 
-                // Create CSV content
-                const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
-                    scores.map((scoreEntry) => 
-                        `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
-                    ).join('\n');
-
-                // Prepare S3 upload parameters
-                const s3Params = {
-                    Bucket: 'testgamearc', // Replace with your S3 bucket name
-                    Key: 'scores.csv', // Name of the file in S3
-                    Body: csvContent,
-                    ContentType: 'text/csv'
-                };
-
-                // Upload to S3
-                s3.putObject(s3Params, (err, data) => {
-                    if (err) {
-                        console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
-                    } else {
-                        console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
-                    }
-                });
-            }
-
-            // Save the current score
+        // Save the current score if valid
+        if (gameName && !isNaN(score)) {
             saveScore(gameName, score); // Save to local storage
             saveScoresToCSV(); // Save scores to CSV and upload to S3
-            displayScores();
+        } else {
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
+        displayScores();
     </script>
 </body>
 </html>
