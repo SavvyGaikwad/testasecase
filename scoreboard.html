@@ -78,6 +78,15 @@
 
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
     <script>
+        // AWS Configuration
+        AWS.config.update({
+            region: 'us-east-1', // Replace with your preferred region
+            accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
+            secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' // Replace with your secret access key
+        });
+
+        const dynamoDB = new AWS.DynamoDB.DocumentClient();
+
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
@@ -109,15 +118,6 @@
 
         // Function to save score to DynamoDB
         function saveScoreToDynamoDB(username, gameName, score) {
-            // Configure AWS SDK
-            AWS.config.update({
-                region: 'us-east-1', // Replace with your preferred region
-                accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
-                secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' // Replace with your secret access key
-            });
-
-            const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
             const params = {
                 TableName: 'Score', // Ensure table name is 'Score'
                 Item: {
