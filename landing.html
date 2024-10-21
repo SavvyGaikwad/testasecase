@@ -76,7 +76,12 @@
         </button>
     </div>
 
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script src="../config/awsConfig.js"></script>
     <script>
+        // Initialize the DynamoDB DocumentClient
+        const dynamoDB = new AWS.DynamoDB.DocumentClient();
+
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
         const username = params.get('username');
@@ -85,6 +90,27 @@
 
         // Display welcome message
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+
+        // Function to save score in DynamoDB
+        function saveScoreToDynamoDB(username, gameName, score) {
+            const params = {
+                TableName: 'score', // Your DynamoDB table name
+                Item: {
+                    UserName: username,
+                    GameName: gameName,
+                    Score: score,
+                    Timestamp: new Date().toISOString() // Optional: to track when the score was saved
+                }
+            };
+
+            dynamoDB.put(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Added item:", JSON.stringify(data, null, 2));
+                }
+            });
+        }
 
         // Function to save score in local storage
         function saveScore(gameName, score) {
@@ -108,7 +134,8 @@
 
         // Save the current score if valid and display all scores
         if (gameName && !isNaN(score)) {
-            saveScore(gameName, score);
+            saveScore(gameName, score); // Save to local storage
+            saveScoreToDynamoDB(username, gameName, score); // Save to DynamoDB
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
