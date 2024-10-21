@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Board</title>
+    <title>Login Page</title>
     <style>
         body {
             display: flex;
@@ -12,116 +12,95 @@
             height: 100vh;
             background-color: #f8d3e9;
             font-family: Arial, sans-serif;
-            text-align: center;
         }
-        .score-board {
+
+        .container {
+            width: 100%;
+            max-width: 400px; /* Responsive max width */
+        }
+
+        .form {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             padding: 20px;
+            background: linear-gradient(to bottom, #858ed2, #2a2c43);
             border-radius: 10px;
-            background-color: #858ed2;
-            color: white;
+            overflow: hidden;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            transform: rotateX(-10deg);
+            transition: all 0.3s ease-in-out;
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+            animation: form-animation 0.5s ease-in-out;
+        }
+
+        @keyframes form-animation {
+            from {
+                transform: rotateX(-30deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+        }
+
+        .input {
+            padding: 10px;
+            border-radius: 5px;
+            background-color: transparent;
+            transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            color: rgb(255, 255, 255);
+            border: 2px solid #3b8df2;
             box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid white;
-            text-align: center;
-        }
-        th {
-            background-color: #7d2ae8;
-        }
-        .button {
-            position: relative;
-            padding: 10px 22px;
-            border-radius: 6px;
-            border: none;
+
+        .input::placeholder {
             color: #fff;
-            cursor: pointer;
-            background-color: #7d2ae8;
-            transition: all 0.2s ease;
-            margin-top: 20px;
         }
-        .button:active {
-            transform: scale(0.96);
+
+        .input:hover,
+        .input:focus {
+            border-color: #3b8df2;
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05) rotateY(20deg);
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #858ed2;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            transform: rotateX(-10deg);
+            transition: all 0.3s ease-in-out;
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        }
+
+        button:hover {
+            background-color: #464b70;
+            font-size: 17px;
+            transform: scale(1.05) rotateY(20deg) rotateX(10deg);
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         }
     </style>
 </head>
 <body>
-    <div class="score-board">
-        <h1 id="welcome-message"></h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Sr. No.</th>
-                    <th>Username</th>
-                    <th>Game Name</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody id="score-table-body">
-                <!-- Scores will be appended here -->
-            </tbody>
-        </table>
-        <button class="button" onclick="window.location.href='landing.html'">
-            Go to Games
-        </button>
+    <div class="container">
+        <form class="form" action="scoreboard.html" method="get">
+            <input placeholder="Enter your username" class="input" type="text" name="username" required>
+            <button type="submit">Submit</button>
+        </form>
     </div>
-
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
-    <script>
-        // AWS Configuration
-        AWS.config.update({
-            region: 'eu-north-1', // Replace with your preferred region
-            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
-            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
-        });
-
-        const s3 = new AWS.S3();
-
-        // Retrieve URL parameters with decoding
-        const params = new URLSearchParams(window.location.search);
-        const username = decodeURIComponent(params.get('username'));
-        const gameName = decodeURIComponent(params.get('gameName'));
-        const score = parseInt(decodeURIComponent(params.get('score')));
-
-        // Debugging: log the values (optional)
-        console.log("Username:", username);
-        console.log("Game Name:", gameName);
-        console.log("Score:", score);
-
-        // Display welcome message
-        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
-
-        // Function to save score in local storage
-        function saveScore(username, gameName, score) {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ username, gameName, score });
-            localStorage.setItem('scores', JSON.stringify(scores));
-        }
-
-        // Function to display scores in the table
-        function displayScores() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            const scoreTableBody = document.getElementById('score-table-body');
-            scoreTableBody.innerHTML = ''; // Clear current scores
-
-            scores.forEach((scoreEntry, index) => {
-                const row = document.createElement('tr');
-                // Add the username, game name, and score to the table
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-                scoreTableBody.appendChild(row); // Append the row to the table
-            });
-        }
-
-        // Save the current game score
-        saveScore(username, gameName, score);
-
-        // Display all scores
-        displayScores();
-    </script>
 </body>
 </html>
