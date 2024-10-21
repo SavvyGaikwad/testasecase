@@ -91,7 +91,7 @@
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
         // Function to save score in local storage
-        function saveScore(gameName, score) {
+        function saveScore(username, gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
             scores.push({ username, gameName, score });
             localStorage.setItem('scores', JSON.stringify(scores));
@@ -144,7 +144,7 @@
 
         // Save the current score if valid
         if (gameName && !isNaN(score)) {
-            saveScore(gameName, score); // Save to local storage
+            saveScore(username, gameName, score); // Save to local storage
             saveScoresToCSV(); // Save scores to CSV and upload to S3
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
