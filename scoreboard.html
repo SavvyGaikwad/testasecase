@@ -54,9 +54,11 @@
     <div class="score-board">
         <h1 id="welcome-message"></h1>
         <table>
+            <caption>Score</caption>
             <thead>
                 <tr>
                     <th>Sr. No.</th>
+                    <th>Username</th> <!-- Added Username header -->
                     <th>Game Name</th>
                     <th>Score</th>
                 </tr>
@@ -79,38 +81,7 @@
             secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
         });
 
-        const dynamoDB = new AWS.DynamoDB();
-
-        // Function to create the GameScores table
-        function createTable() {
-            const params = {
-                TableName: 'GameScores',
-                KeySchema: [
-                    { AttributeName: 'username', KeyType: 'HASH' },  // Partition key
-                    { AttributeName: 'gameName', KeyType: 'RANGE' }   // Sort key
-                ],
-                AttributeDefinitions: [
-                    { AttributeName: 'username', AttributeType: 'S' },
-                    { AttributeName: 'gameName', AttributeType: 'S' }
-                ],
-                ProvisionedThroughput: {
-                    ReadCapacityUnits: 5,
-                    WriteCapacityUnits: 5
-                }
-            };
-
-            dynamoDB.createTable(params, (err, data) => {
-                if (err) {
-                    if (err.code === 'ResourceInUseException') {
-                        console.log("Table already exists.");
-                    } else {
-                        console.error("Error creating table:", JSON.stringify(err, null, 2));
-                    }
-                } else {
-                    console.log("Table created successfully:", JSON.stringify(data, null, 2));
-                }
-            });
-        }
+        const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
@@ -159,15 +130,12 @@
 
                     data.Items.forEach((scoreEntry, index) => {
                         const row = document.createElement('tr');
-                        row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                        row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
                         scoreTableBody.appendChild(row);
                     });
                 }
             });
         }
-
-        // Create the table on load (can be commented out after first run)
-        createTable();
 
         // Save the current score if valid
         if (gameName && !isNaN(score)) {
