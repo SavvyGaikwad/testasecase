@@ -1,160 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Score Board</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f8d3e9;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        .score-board {
-            padding: 20px;
-            border-radius: 10px;
-            background-color: #858ed2;
-            color: white;
-            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid white;
-            text-align: center;
-        }
-        th {
-            background-color: #7d2ae8;
-        }
-        .button {
-            position: relative;
-            padding: 10px 22px;
-            border-radius: 6px;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            background-color: #7d2ae8;
-            transition: all 0.2s ease;
-            margin-top: 20px;
-        }
-        .button:active {
-            transform: scale(0.96);
-        }
-    </style>
-</head>
-<body>
-    <div class="score-board">
-        <h1 id="welcome-message"></h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Sr. No.</th>
-                    <th>Game Name</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody id="score-table-body">
-                <!-- Scores will be appended here -->
-            </tbody>
-        </table>
-        <button class="button" onclick="goToGames()">
-            Go to Games
-        </button>
-    </div>
+<script>
+    // AWS Configuration
+    AWS.config.update({
+        region: 'eu-north-1', // Replace with your preferred region
+        accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
+        secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
+    });
 
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
-    <script>
-        // AWS Configuration
-        AWS.config.update({
-            region: 'eu-north-1', // Replace with your preferred region
-            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
-            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
+    const s3 = new AWS.S3();
+
+    // Retrieve URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const usernameFromURL = params.get('username');
+    const gameName = params.get('gameName');
+    const score = parseInt(params.get('score'));
+
+    // Store username in local storage if not already stored
+    const storedUsername = localStorage.getItem('username');
+    if (!storedUsername && usernameFromURL) {
+        localStorage.setItem('username', usernameFromURL);
+    }
+
+    // Retrieve username from local storage
+    const username = localStorage.getItem('username') || 'Guest';
+
+    // Display welcome message
+    document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+
+    // Function to save score in local storage
+    function saveScore(gameName, score) {
+        const scores = JSON.parse(localStorage.getItem('scores')) || [];
+        scores.push({ username, gameName, score });
+        localStorage.setItem('scores', JSON.stringify(scores));
+    }
+
+    // Function to display scores in the table
+    function displayScores() {
+        const scores = JSON.parse(localStorage.getItem('scores')) || [];
+        const scoreTableBody = document.getElementById('score-table-body');
+        scoreTableBody.innerHTML = ''; // Clear current scores
+
+        scores.forEach((scoreEntry, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+            scoreTableBody.appendChild(row);
         });
+    }
 
-        const s3 = new AWS.S3();
-
-        // Retrieve URL parameters
-        const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
-        const gameName = params.get('gameName');
-        const score = parseInt(params.get('score'));
-
-        // Display welcome message
-        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
-
-        // Function to save score in local storage
-        function saveScore(gameName, score) {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ username, gameName, score });
-            localStorage.setItem('scores', JSON.stringify(scores));
+    // Function to save scores to CSV and upload to S3
+    function saveScoresToCSV() {
+        const scores = JSON.parse(localStorage.getItem('scores')) || [];
+        if (scores.length === 0) {
+            console.warn('No scores to save.');
+            return;
         }
 
-        // Function to display scores in the table
-        function displayScores() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            const scoreTableBody = document.getElementById('score-table-body');
-            scoreTableBody.innerHTML = ''; // Clear current scores
+        // Create CSV content
+        const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
+            scores.map((scoreEntry) => 
+                `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+            ).join('\n');
 
-            scores.forEach((scoreEntry, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-                scoreTableBody.appendChild(row);
-            });
-        }
+        // Prepare S3 upload parameters
+        const s3Params = {
+            Bucket: 'testgamearc', // Replace with your S3 bucket name
+            Key: 'scores.csv', // Name of the file in S3
+            Body: csvContent,
+            ContentType: 'text/csv'
+        };
 
-        // Function to save scores to CSV and upload to S3
-        function saveScoresToCSV() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            if (scores.length === 0) {
-                console.warn('No scores to save.');
-                return;
+        // Upload to S3
+        s3.putObject(s3Params, (err, data) => {
+            if (err) {
+                console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
+            } else {
+                console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
             }
+        });
+    }
 
-            // Create CSV content
-            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry) => 
-                    `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
-                ).join('\n');
+    // Function to handle button click and navigate to the games page
+    function goToGames() {
+        window.location.href = 'landing.html?username=' + encodeURIComponent(username);
+    }
 
-            // Prepare S3 upload parameters
-            const s3Params = {
-                Bucket: 'testgamearc', // Replace with your S3 bucket name
-                Key: 'scores.csv', // Name of the file in S3
-                Body: csvContent,
-                ContentType: 'text/csv'
-            };
-
-            // Upload to S3
-            s3.putObject(s3Params, (err, data) => {
-                if (err) {
-                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
-                } else {
-                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
-                }
-            });
-        }
-
-        // Function to handle button click and navigate to the games page
-        function goToGames() {
-            window.location.href = 'landing.html?username=' + encodeURIComponent(username);
-        }
-
-        // Save the current score if valid
-        if (gameName && !isNaN(score)) {
-            saveScore(gameName, score); // Save to local storage
-            saveScoresToCSV(); // Save scores to CSV and upload to S3
-        } else {
-            console.warn('Game name or score is invalid. Not saving to scoreboard.');
-        }
-        displayScores();
-    </script>
-</body>
-</html>
+    // Save the current score if valid
+    if (gameName && !isNaN(score)) {
+        saveScore(gameName, score); // Save to local storage
+        saveScoresToCSV(); // Save scores to CSV and upload to S3
+    } else {
+        console.warn('Game name or score is invalid. Not saving to scoreboard.');
+    }
+    displayScores();
+</script>
