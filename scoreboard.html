@@ -83,7 +83,7 @@
 
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username');
+        const username = params.get('username'); // Keep username for display but not for CSV
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
@@ -93,7 +93,7 @@
         // Function to save score in local storage
         function saveScore(gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ username, gameName, score });
+            scores.push({ gameName, score }); // Removed username from here
             localStorage.setItem('scores', JSON.stringify(scores));
         }
 
@@ -118,10 +118,10 @@
                 return;
             }
 
-            // Create CSV content
-            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
+            // Create CSV content without username
+            const csvContent = 'GameName,Score,Timestamp\n' + 
                 scores.map((scoreEntry) => 
-                    `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+                    `${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
                 ).join('\n');
 
             // Prepare S3 upload parameters
@@ -153,5 +153,3 @@
     </script>
 </body>
 </html>
-
-
