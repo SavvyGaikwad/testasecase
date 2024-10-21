@@ -63,6 +63,7 @@
             <thead>
                 <tr>
                     <th>Sr. No.</th>
+                    <th>Username</th>
                     <th>Game Name</th>
                     <th>Score</th>
                 </tr>
@@ -86,10 +87,10 @@
         // Display welcome message
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
-        // Function to save score in local storage
-        function saveScore(gameName, score) {
+        // Function to save score in local storage, including username
+        function saveScore(username, gameName, score) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ gameName, score });
+            scores.push({ username, gameName, score });
             localStorage.setItem('scores', JSON.stringify(scores));
         }
 
@@ -101,16 +102,16 @@
 
             scores.forEach((scoreEntry, index) => {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
                 scoreTableBody.appendChild(row);
             });
         }
 
         // Save the current score if valid and display all scores
-        if (gameName && !isNaN(score)) {
-            saveScore(gameName, score);
+        if (gameName && !isNaN(score) && username) {
+            saveScore(username, gameName, score);
         } else {
-            console.warn('Game name or score is invalid. Not saving to scoreboard.');
+            console.warn('Game name, score, or username is invalid. Not saving to scoreboard.');
         }
         displayScores();
     </script>
