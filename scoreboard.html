@@ -75,8 +75,8 @@
         <button class="button" onclick="window.location.href='landing.html'">
             Go to Games
         </button>
-        <button class="button" onclick="exportToCSV()">
-            Export to CSV
+        <button class="button" onclick="downloadCSV()">
+            Download Scores as CSV
         </button>
     </div>
 
@@ -110,24 +110,26 @@
             });
         }
 
-        // Function to export scores to CSV
-        function exportToCSV() {
+        // Function to download scores as a CSV file
+        function downloadCSV() {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Game Name,Score,Timestamp\n"; // Header row
+            csvContent += "Game Name,Score,Timestamp\n"; // CSV header
 
             scores.forEach(scoreEntry => {
                 const row = `${scoreEntry.gameName},${scoreEntry.score},${scoreEntry.timestamp}`;
-                csvContent += row + "\n"; // Add each score entry to the CSV
+                csvContent += row + "\n";
             });
 
+            // Create a link and trigger the download
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "new_file_db.csv"); // Set the filename
-            document.body.appendChild(link); // Required for Firefox
-            link.click(); // Trigger the download
-            document.body.removeChild(link); // Clean up
+            link.setAttribute("download", "db.csv");
+            document.body.appendChild(link); // Required for FF
+
+            link.click(); // This will download the data file named "db.csv"
+            document.body.removeChild(link); // Clean up the link element
         }
 
         // Save the current score if valid and display all scores
