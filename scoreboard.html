@@ -54,11 +54,10 @@
     <div class="score-board">
         <h1 id="welcome-message"></h1>
         <table>
-            <caption>Score</caption>
             <thead>
                 <tr>
                     <th>Sr. No.</th>
-                    <th>Username</th> <!-- Added Username header -->
+                    <th>Username</th>
                     <th>Game Name</th>
                     <th>Score</th>
                 </tr>
@@ -77,8 +76,8 @@
         // AWS Configuration
         AWS.config.update({
             region: 'eu-north-1', // Replace with your preferred region
-            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
-            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
+            accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
+            secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' // Replace with your secret access key
         });
 
         const dynamoDB = new AWS.DynamoDB.DocumentClient();
@@ -96,7 +95,7 @@
         function saveScore(username, gameName, score) {
             const timestamp = new Date().toISOString();
             const params = {
-                TableName: 'GameScores',
+                TableName: 'GameScores', // Replace with your actual table name
                 Item: {
                     username: username,
                     gameName: gameName,
@@ -118,7 +117,7 @@
         // Function to display scores in the table
         function displayScores() {
             const params = {
-                TableName: 'GameScores'
+                TableName: 'GameScores' // Replace with your actual table name
             };
 
             dynamoDB.scan(params, (err, data) => {
