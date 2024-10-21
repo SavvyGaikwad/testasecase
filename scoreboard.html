@@ -1,120 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Score Board</title>
-  <style>
-    /* Your styling remains the same */
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Board</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8d3e9;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .score-board {
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #858ed2;
+            color: white;
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid white;
+            text-align: center;
+        }
+        th {
+            background-color: #7d2ae8;
+        }
+        .button {
+            position: relative;
+            padding: 10px 22px;
+            border-radius: 6px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            background-color: #7d2ae8;
+            transition: all 0.2s ease;
+            margin-top: 20px;
+        }
+        .button:active {
+            transform: scale(0.96);
+        }
+    </style>
 </head>
 <body>
-  <div class="score-board">
-    <h1 id="welcome-message"></h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Sr. No.</th>
-          <th>Username</th>
-          <th>Game Name</th>
-          <th>Score</th>
-        </tr>
-      </thead>
-      <tbody id="score-table-body">
-        </tbody>
-    </table>
-    <button class="button" onclick="window.location.href='landing.html'">
-      Go to Games
-    </button>
-  </div>
+    <div class="score-board">
+        <h1 id="welcome-message"></h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Game Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="score-table-body">
+                <!-- Scores will be appended here -->
+            </tbody>
+        </table>
+        <button class="button" onclick="window.location.href='landing.html'">
+            Go to Games
+        </button>
+    </div>
 
-  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
-  <script>
-    // Replace with your actual values from a secure configuration source
-    const REGION = 'eu-north-1';
-    const TABLE_NAME = 'GameScores';
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script>
+        // AWS Configuration
+        AWS.config.update({
+            region: 'eu-north-1', // Replace with your preferred region
+            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
+            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
+        });
 
-    AWS.config.update({
-      region: REGION
-    });
+        const s3 = new AWS.S3();
 
-    const dynamoDB = new AWS.DynamoDB.DocumentClient();
+        // Retrieve URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username'); // Keep username for display but not for CSV
+        const gameName = params.get('gameName');
+        const score = parseInt(params.get('score'));
 
-    // Retrieve URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const username = params.get('username');
-    const gameName = params.get('gameName');
-    const score = parseInt(params.get('score'));
+        // Display welcome message
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
-    // Display welcome message
-    if (username) {
-      document.getElementById('welcome-message').textContent = `Welcome ${username}`;
-    } else {
-      document.getElementById('welcome-message').textContent = 'Welcome Guest';
-    }
-
-    // Function to save score in DynamoDB
-    function saveScore(username, gameName, score) {
-      const timestamp = new Date().toISOString();
-      const params = {
-        TableName: TABLE_NAME,
-        Item: {
-          username: username,
-          gameName: gameName,
-          score: score,
-          timestamp: timestamp
+        // Function to save score in local storage
+        function saveScore(gameName, score) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ gameName, score }); // Removed username from here
+            localStorage.setItem('scores', JSON.stringify(scores));
         }
-      };
 
-      dynamoDB.put(params, (err, data) => {
-        if (err) {
-          console.error("Error saving score:", JSON.stringify(err, null, 2));
-          // Display a user-friendly error message here
-          document.getElementById('welcome-message').textContent = 'Error saving score. Please try again later.';
-        } else {
-          console.log("Score saved successfully:", JSON.stringify(data, null, 2));
-          displayScores();
-        }
-      });
-    }
+        // Function to display scores in the table
+        function displayScores() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            const scoreTableBody = document.getElementById('score-table-body');
+            scoreTableBody.innerHTML = ''; // Clear current scores
 
-    // Function to display scores in the table
-    function displayScores() {
-      const params = {
-        TableName: TABLE_NAME
-      };
-
-      dynamoDB.scan(params, (err, data) => {
-        if (err) {
-          console.error("Unable to scan the table. Error:", JSON.stringify(err, null, 2));
-          // Display a user-friendly error message here
-          const scoreTableBody = document.getElementById('score-table-body');
-          scoreTableBody.innerHTML = '<tr><td colspan="4">Error fetching scores. Please try again later.</td></tr>';
-        } else {
-          const scoreTableBody = document.getElementById('score-table-body');
-          scoreTableBody.innerHTML = ''; // Clear current scores
-
-          if (data.Items.length === 0) {
-            scoreTableBody.innerHTML = '<tr><td colspan="4">No scores yet!</td></tr>';
-          } else {
-            data.Items.forEach((scoreEntry, index) => {
-              const row = document.createElement('tr');
-              row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-              scoreTableBody.appendChild(row);
+            scores.forEach((scoreEntry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                scoreTableBody.appendChild(row);
             });
-          }
         }
-      });
-    }
 
-    // Validate parameters and save the score if valid
-    if (gameName && !isNaN(score) && score >= 0) {
-      saveScore(username || 'Guest', gameName, score); // Save to DynamoDB
-      displayScores();
-    } else {
-      console.warn('Invalid parameters. Please ensure that all parameters (username, gameName, score) are provided and score is a valid number.');
-      document.getElementById('welcome-message').textContent = 'Invalid Score Submission';
-    }
-  </script>
+        // Function to save scores to CSV and upload to S3
+        function saveScoresToCSV() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            if (scores.length === 0) {
+                console.warn('No scores to save.');
+                return;
+            }
+
+            // Create CSV content with Sr. No.
+            const csvContent = 'Sr. No.,GameName,Score,Timestamp\n' + 
+                scores.map((scoreEntry, index) => 
+                    `${index + 1},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+                ).join('\n');
+
+            // Prepare S3 upload parameters
+            const s3Params = {
+                Bucket: 'testgamearc', // Replace with your S3 bucket name
+                Key: 'scores.csv', // Name of the file in S3
+                Body: csvContent,
+                ContentType: 'text/csv'
+            };
+
+            // Upload to S3
+            s3.putObject(s3Params, (err, data) => {
+                if (err) {
+                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
+                }
+            });
+        }
+
+        // Save the current score if valid
+        if (gameName && !isNaN(score)) {
+            saveScore(gameName, score); // Save to local storage
+            saveScoresToCSV(); // Save scores to CSV and upload to S3
+        } else {
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
+        }
+        displayScores();
+    </script>
 </body>
 </html>
