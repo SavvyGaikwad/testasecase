@@ -62,8 +62,7 @@
                 </tr>
             </thead>
             <tbody id="score-table-body">
-                <!-- Scores will be appended here -->
-            </tbody>
+                </tbody>
         </table>
         <button class="button" onclick="window.location.href='landing.html'">
             Go to Games
@@ -81,19 +80,22 @@
 
         const s3 = new AWS.S3();
 
-        // Retrieve username from local storage
-        const username = localStorage.getItem('username');
-
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
+        const username = params.get('username');
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
         // Display welcome message
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
+        // Function to save username in local storage
+        function saveUsername(username) {
+            localStorage.setItem('username', username);
+        }
+
         // Function to save score in local storage
-        function saveScore(gameName, score) {
+        function saveScore(gameName, score, username) {
             const scores = JSON.parse(localStorage.getItem('scores')) || [];
             scores.push({ username, gameName, score });
             localStorage.setItem('scores', JSON.stringify(scores));
@@ -121,8 +123,8 @@
             }
 
             // Create CSV content
-            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry) => 
+            const csvContent = 'UserName,GameName,Score,Timestamp\n' +
+                scores.map((scoreEntry) =>
                     `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
                 ).join('\n');
 
@@ -146,11 +148,17 @@
 
         // Save the current score if valid
         if (gameName && !isNaN(score)) {
-            saveScore(gameName, score); // Save to local storage
-            saveScoresToCSV(); // Save scores to CSV and upload to S3
+            const usernameFromStorage = localStorage.getItem('username');
+            if (usernameFromStorage) {
+                saveScore(gameName, score, usernameFromStorage); // Save to local storage with username
+                saveScoresToCSV(); // Save scores to CSV and upload to S3
+            } else {
+                console.warn('Username not found in local storage. Score not saved.');
+            }
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
+
         displayScores();
     </script>
 </body>
