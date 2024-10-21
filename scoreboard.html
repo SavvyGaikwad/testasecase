@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Score Board</title>
     <style>
         body {
             display: flex;
@@ -12,95 +12,147 @@
             height: 100vh;
             background-color: #f8d3e9;
             font-family: Arial, sans-serif;
+            text-align: center;
         }
-
-        .container {
-            width: 100%;
-            max-width: 400px; /* Responsive max width */
-        }
-
-        .form {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .score-board {
             padding: 20px;
-            background: linear-gradient(to bottom, #858ed2, #2a2c43);
             border-radius: 10px;
-            overflow: hidden;
-            perspective: 1000px;
-            transform-style: preserve-3d;
-            transform: rotateX(-10deg);
-            transition: all 0.3s ease-in-out;
-            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-            animation: form-animation 0.5s ease-in-out;
-        }
-
-        @keyframes form-animation {
-            from {
-                transform: rotateX(-30deg);
-                opacity: 0;
-            }
-            to {
-                transform: rotateX(0deg);
-                opacity: 1;
-            }
-        }
-
-        .input {
-            padding: 10px;
-            border-radius: 5px;
-            background-color: transparent;
-            transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            color: rgb(255, 255, 255);
-            border: 2px solid #3b8df2;
-            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
-        }
-
-        .input::placeholder {
-            color: #fff;
-        }
-
-        .input:hover,
-        .input:focus {
-            border-color: #3b8df2;
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05) rotateY(20deg);
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
-            outline: none;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
             background-color: #858ed2;
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            transform: rotateX(-10deg);
-            transition: all 0.3s ease-in-out;
+            color: white;
             box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
         }
-
-        button:hover {
-            background-color: #464b70;
-            font-size: 17px;
-            transform: scale(1.05) rotateY(20deg) rotateX(10deg);
-            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid white;
+            text-align: center;
+        }
+        th {
+            background-color: #7d2ae8;
+        }
+        .button {
+            position: relative;
+            padding: 10px 22px;
+            border-radius: 6px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            background-color: #7d2ae8;
+            transition: all 0.2s ease;
+            margin-top: 20px;
+        }
+        .button:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <form class="form" action="scoreboard.html" method="get">
-            <input placeholder="Enter your username" class="input" type="text" name="username" required>
-            <button type="submit">Submit</button>
-        </form>
+    <div class="score-board">
+        <h1 id="welcome-message"></h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Game Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="score-table-body">
+                <!-- Scores will be appended here -->
+            </tbody>
+        </table>
+        <button class="button" onclick="window.location.href='landing.html'">
+            Go to Games
+        </button>
     </div>
+
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
+    <script>
+        // AWS Configuration
+        AWS.config.update({
+            region: 'eu-north-1', // Replace with your preferred region
+            accessKeyId: 'AKIAZQ3DSF3KTWAKBFVT', // Replace with your access key
+            secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
+        });
+
+        const s3 = new AWS.S3();
+
+        // Retrieve URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username');
+        const gameName = params.get('gameName');
+        const score = parseInt(params.get('score'));
+
+        // Display welcome message
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+
+        // Function to save score in local storage
+        function saveScore(gameName, score) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ username, gameName, score });
+            localStorage.setItem('scores', JSON.stringify(scores));
+        }
+
+        // Function to display scores in the table
+        function displayScores() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            const scoreTableBody = document.getElementById('score-table-body');
+            scoreTableBody.innerHTML = ''; // Clear current scores
+
+            scores.forEach((scoreEntry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                scoreTableBody.appendChild(row);
+            });
+        }
+
+        // Function to save scores to CSV and upload to S3
+        function saveScoresToCSV() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            if (scores.length === 0) {
+                console.warn('No scores to save.');
+                return;
+            }
+
+            // Create CSV content
+            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
+                scores.map((scoreEntry) => 
+                    `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
+                ).join('\n');
+
+            // Prepare S3 upload parameters
+            const s3Params = {
+                Bucket: 'your-s3-bucket-name', // Replace with your S3 bucket name
+                Key: 'scores.csv', // Name of the file in S3
+                Body: csvContent,
+                ContentType: 'text/csv'
+            };
+
+            // Upload to S3
+            s3.putObject(s3Params, (err, data) => {
+                if (err) {
+                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
+                } else {
+                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
+                }
+            });
+        }
+
+        // Save the current score if valid
+        if (gameName && !isNaN(score)) {
+            saveScore(gameName, score); // Save to local storage
+            saveScoresToCSV(); // Save scores to CSV and upload to S3
+        } else {
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
+        }
+        displayScores();
+    </script>
 </body>
 </html>
+
+
+am i supposed to make csv 1st or it will create itself
