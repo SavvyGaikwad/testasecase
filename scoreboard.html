@@ -77,7 +77,6 @@
     </div>
 
     <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.12.min.js"></script>
-    <script src="../config/awsConfig.js"></script>
     <script>
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
@@ -110,10 +109,17 @@
 
         // Function to save score to DynamoDB
         function saveScoreToDynamoDB(username, gameName, score) {
-            const dynamoDB = require('../config/awsConfig'); // Adjust the path if needed
+            // Configure AWS SDK (make sure this part is run on the server side or secured environment)
+            AWS.config.update({
+                region: 'us-east-1', // Replace with your preferred region
+                accessKeyId: 'YOUR_ACCESS_KEY_ID', // Replace with your access key
+                secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' // Replace with your secret access key
+            });
+
+            const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
             const params = {
-                TableName: 'score', // Replace with your DynamoDB table name
+                TableName: 'Score', // Correctly set table name to 'Score'
                 Item: {
                     UserName: username,
                     GameName: gameName,
