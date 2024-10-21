@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Board</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8d3e9;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .score-board {
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #858ed2;
+            color: white;
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid white;
+            text-align: center;
+        }
+
+        th {
+            background-color: #7d2ae8;
+        }
+
+        .button {
+            position: relative;
+            padding: 10px 22px;
+            border-radius: 6px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            background-color: #7d2ae8;
+            transition: all 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .button:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body>
+    <div class="score-board">
+        <h1 id="welcome-message"></h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sr. No.</th>
+                    <th>Game Name</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="score-table-body">
+                <!-- Scores will be appended here -->
+            </tbody>
+        </table>
+        <button class="button" onclick="window.location.href='landing.html'">
+            Go to Games
+        </button>
+    </div>
+
+    <script>
+        // Retrieve URL parameters
+        const params = new URLSearchParams(window.location.search);
+        const username = params.get('username');
+        const gameName = params.get('gameName');
+        const score = parseInt(params.get('score'));
+
+        // Display welcome message
+        document.getElementById('welcome-message').textContent = `Welcome ${username}`;
+
+        // Function to save score in local storage
+        function saveScore(gameName, score) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ gameName, score });
+            localStorage.setItem('scores', JSON.stringify(scores));
+
+            // Call the function to save score to DynamoDB (this would be an API call in a real scenario)
+            saveScoreToDynamoDB(username, gameName, score);
+        }
+
+        // Function to display scores in the table
+        function displayScores() {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            const scoreTableBody = document.getElementById('score-table-body');
+            scoreTableBody.innerHTML = ''; // Clear current scores
+
+            scores.forEach((scoreEntry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                scoreTableBody.appendChild(row);
+            });
+        }
+
+        // Save the current score if valid and display all scores
+        if (gameName && !isNaN(score)) {
+            saveScore(gameName, score);
+        } else {
+            console.warn('Game name or score is invalid. Not saving to scoreboard.');
+        }
+        displayScores();
+    </script>
+</body>
+</html>

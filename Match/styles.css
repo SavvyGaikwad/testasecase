@@ -1,0 +1,63 @@
+body {
+    font-family: 'Roboto', sans-serif; 
+    background-color: #282c34; 
+    color: #ffffff; 
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.timer {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #4caf50; /* You can choose any color you like */
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Set the grid to 4 columns */
+    grid-template-rows: repeat(3, 1fr); /* Set the grid to 3 rows */
+    gap: 1px; /* Reduced gap between cards */
+    justify-content: center;
+    padding: 4px; /* Reduced padding around the grid */
+}
+
+.card {
+    width: 100px; /* Set width to a more appropriate size */
+    height: 100px; /* Set height to a more appropriate size */
+    background-color: #565c6f;
+    border-radius: 6px; /* Slightly smaller border radius */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Reduced shadow size */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.card img {
+    width: 100%;
+    height: auto;
+    visibility: hidden; /* Hide images by default */
+    display: block;
+}
+
+.card.show img {
+    visibility: visible; /* Show image when card is flipped */
+}
+
+#start-game {
+    background-color: #4caf50;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+#start-game:hover {
+    background-color: #43a047; /* Darker on hover */
+    transform: scale(1.05); /* Slightly enlarges on hover */
+}
