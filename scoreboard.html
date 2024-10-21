@@ -79,73 +79,99 @@
             secretAccessKey: 'xsdRFjfPZ+9XwuV8pFxgo0OzzJWaoQkDogGyw3LK' // Replace with your secret access key
         });
 
-        const s3 = new AWS.S3();
+        const dynamoDB = new AWS.DynamoDB();
+
+        // Function to create the GameScores table
+        function createTable() {
+            const params = {
+                TableName: 'GameScores',
+                KeySchema: [
+                    { AttributeName: 'username', KeyType: 'HASH' },  // Partition key
+                    { AttributeName: 'gameName', KeyType: 'RANGE' }   // Sort key
+                ],
+                AttributeDefinitions: [
+                    { AttributeName: 'username', AttributeType: 'S' },
+                    { AttributeName: 'gameName', AttributeType: 'S' }
+                ],
+                ProvisionedThroughput: {
+                    ReadCapacityUnits: 5,
+                    WriteCapacityUnits: 5
+                }
+            };
+
+            dynamoDB.createTable(params, (err, data) => {
+                if (err) {
+                    if (err.code === 'ResourceInUseException') {
+                        console.log("Table already exists.");
+                    } else {
+                        console.error("Error creating table:", JSON.stringify(err, null, 2));
+                    }
+                } else {
+                    console.log("Table created successfully:", JSON.stringify(data, null, 2));
+                }
+            });
+        }
 
         // Retrieve URL parameters
         const params = new URLSearchParams(window.location.search);
-        const username = params.get('username'); // Keep username for display but not for CSV
+        const username = params.get('username'); // Keep username for display
         const gameName = params.get('gameName');
         const score = parseInt(params.get('score'));
 
         // Display welcome message
         document.getElementById('welcome-message').textContent = `Welcome ${username}`;
 
-        // Function to save score in local storage
-        function saveScore(gameName, score) {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            scores.push({ gameName, score }); // Removed username from here
-            localStorage.setItem('scores', JSON.stringify(scores));
-        }
-
-        // Function to display scores in the table
-        function displayScores() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            const scoreTableBody = document.getElementById('score-table-body');
-            scoreTableBody.innerHTML = ''; // Clear current scores
-
-            scores.forEach((scoreEntry, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-                scoreTableBody.appendChild(row);
-            });
-        }
-
-        // Function to save scores to CSV and upload to S3
-        function saveScoresToCSV() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            if (scores.length === 0) {
-                console.warn('No scores to save.');
-                return;
-            }
-
-            // Create CSV content with Sr. No.
-            const csvContent = 'Sr. No.,GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry, index) => 
-                    `${index + 1},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
-                ).join('\n');
-
-            // Prepare S3 upload parameters
-            const s3Params = {
-                Bucket: 'testgamearc', // Replace with your S3 bucket name
-                Key: 'scores.csv', // Name of the file in S3
-                Body: csvContent,
-                ContentType: 'text/csv'
+        // Function to save score in DynamoDB
+        function saveScore(username, gameName, score) {
+            const timestamp = new Date().toISOString();
+            const params = {
+                TableName: 'GameScores',
+                Item: {
+                    username: username,
+                    gameName: gameName,
+                    score: score,
+                    timestamp: timestamp
+                }
             };
 
-            // Upload to S3
-            s3.putObject(s3Params, (err, data) => {
+            // Save to DynamoDB
+            dynamoDB.put(params, (err, data) => {
                 if (err) {
-                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
+                    console.error("Error saving score:", JSON.stringify(err, null, 2));
                 } else {
-                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
+                    console.log("Score saved successfully:", JSON.stringify(data, null, 2));
                 }
             });
         }
 
+        // Function to display scores in the table
+        function displayScores() {
+            const params = {
+                TableName: 'GameScores'
+            };
+
+            dynamoDB.scan(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to scan the table. Error:", JSON.stringify(err, null, 2));
+                } else {
+                    const scoreTableBody = document.getElementById('score-table-body');
+                    scoreTableBody.innerHTML = ''; // Clear current scores
+
+                    data.Items.forEach((scoreEntry, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
+                        scoreTableBody.appendChild(row);
+                    });
+                }
+            });
+        }
+
+        // Create the table on load (can be commented out after first run)
+        createTable();
+
         // Save the current score if valid
         if (gameName && !isNaN(score)) {
-            saveScore(gameName, score); // Save to local storage
-            saveScoresToCSV(); // Save scores to CSV and upload to S3
+            saveScore(username, gameName, score); // Save to DynamoDB
         } else {
             console.warn('Game name or score is invalid. Not saving to scoreboard.');
         }
