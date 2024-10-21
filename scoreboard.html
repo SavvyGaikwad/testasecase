@@ -57,6 +57,7 @@
             <thead>
                 <tr>
                     <th>Sr. No.</th>
+                    <th>Username</th>
                     <th>Game Name</th>
                     <th>Score</th>
                 </tr>
@@ -105,50 +106,16 @@
 
             scores.forEach((scoreEntry, index) => {
                 const row = document.createElement('tr');
+                // Add the username, game name, and score to the table
                 row.innerHTML = `<td>${index + 1}</td><td>${scoreEntry.username}</td><td>${scoreEntry.gameName}</td><td>${scoreEntry.score}</td>`;
-                scoreTableBody.appendChild(row);
+                scoreTableBody.appendChild(row); // Append the row to the table
             });
         }
 
-        // Function to save scores to CSV and upload to S3
-        function saveScoresToCSV() {
-            const scores = JSON.parse(localStorage.getItem('scores')) || [];
-            if (scores.length === 0) {
-                console.warn('No scores to save.');
-                return;
-            }
+        // Save the current game score
+        saveScore(username, gameName, score);
 
-            // Create CSV content
-            const csvContent = 'UserName,GameName,Score,Timestamp\n' + 
-                scores.map((scoreEntry) => 
-                    `${scoreEntry.username},${scoreEntry.gameName},${scoreEntry.score},${new Date().toISOString()}`
-                ).join('\n');
-
-            // Prepare S3 upload parameters
-            const s3Params = {
-                Bucket: 'testgamearc', // Replace with your S3 bucket name
-                Key: 'scores.csv', // Name of the file in S3
-                Body: csvContent,
-                ContentType: 'text/csv'
-            };
-
-            // Upload to S3
-            s3.putObject(s3Params, (err, data) => {
-                if (err) {
-                    console.error("Error uploading CSV:", JSON.stringify(err, null, 2));
-                } else {
-                    console.log("Successfully uploaded CSV:", JSON.stringify(data, null, 2));
-                }
-            });
-        }
-
-        // Save the current score if valid
-        if (gameName && !isNaN(score)) {
-            saveScore(username, gameName, score); // Save to local storage
-            saveScoresToCSV(); // Save scores to CSV and upload to S3
-        } else {
-            console.warn('Game name or score is invalid. Not saving to scoreboard.');
-        }
+        // Display all scores
         displayScores();
     </script>
 </body>
